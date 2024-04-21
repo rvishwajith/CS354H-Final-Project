@@ -22,6 +22,10 @@ The overall aim of this project is to create a **performant and interactive ocea
 ## Attributons
 All necessary references for the project should be listed here. This needs to be updated more later.
 
+**Unity Forums & Documentation:**
+- https://forum.unity.com/threads/job-system-example-starting-with-simple-optimizations-using-a-nativearray-struct.540652/
+- https://docs.unity3d.com/ScriptReference/Graphics.RenderMeshInstanced.html
+
 **Conrad Parker:**
 - http://www.kfish.org/boids/pseudocode.html
 
