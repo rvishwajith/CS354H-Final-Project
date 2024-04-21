@@ -1,7 +1,7 @@
-# CS 354H (Computer Graphics Honors) Final Project
-Final project by Rohith Vishwajith for CS 354H (Spring 2024, Dr. Etienne Vouga) at UT Austin.
+# CS 354H Final Project by Rohith Vishwajith
+Final project for CS 354H (Spring 2024, Dr. Etienne Vouga) at UT Austin.
 
-## Project Goals
+## Project Overview
 The overall aim of this project is to create a **performant and interactive ocean simulation in Unity using URP**. I aim to do this by implementing as many of the following features as possible:
 
 **Procedurally animated ocean surface (waves, crests, etc):**
