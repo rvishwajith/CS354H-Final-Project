@@ -35,6 +35,9 @@ public class SchoolSettings : ScriptableObject
     public float collisionCheckDistance = 4f;
     public float collisionCheckRadius = 0.25f;
 
+    [Header("Performance")]
+    public bool useParallelJobs = false;
+
     [Header("Rendering")]
     public bool useMeshInstancing = false;
 }

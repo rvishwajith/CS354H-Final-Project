@@ -25,22 +25,23 @@ class SchoolController : MonoBehaviour
     Mesh instanceMesh;
     Material instanceMaterial;
 
+    /// <summary>
+    /// If mesh instancing is enabled and the instances have a mesh filter component, copy the
+    /// mesh data from it and disable/remove and rendering data from the GameObject.
+    /// </summary>
     void SetupMeshInstancing()
     {
-        // Early exit cases.
-        if (settings == null || !settings.useMeshInstancing)
-            return;
-        else if (entities.Length == 0)
+        if (settings == null || !settings.useMeshInstancing || entities.Length == 0)
             return;
 
-        // Cache the mesh instancing data (mesh and material).
+        // Cache the material and mesh.
         var entityTransform = entities[0].transform;
-        if (entityTransform.TryGetComponent<MeshRenderer>(out var meshRenderer))
-            instanceMaterial = meshRenderer.material;
         if (entityTransform.TryGetComponent<MeshFilter>(out var meshFilter))
             instanceMesh = meshFilter.mesh;
+        if (entityTransform.TryGetComponent<MeshRenderer>(out var meshRenderer))
+            instanceMaterial = meshRenderer.material;
 
-        // Disable the mesh renderers.
+        // Disable/remove the mesh renderers for each instance.
         for (var i = 0; i < entities.Length; i++)
         {
             entities[i].transform.GetComponent<MeshRenderer>().enabled = false;
@@ -115,7 +116,11 @@ class SchoolController : MonoBehaviour
         frameCount += 1;
     }
 
-    // Apply acceleration to velocity, then reset acceleration.
+    /// <summary>
+    /// Apply acceleration to an entity's velocity, then reset its acceleration.
+    /// TODO: Remove the acceleration field from the struct and change it to a paramter.
+    /// </summary>
+    /// <param name="i">The index of the entity to reset.</param>
     void ApplyAcceleration(int i)
     {
         entities[i].velocity += entities[i].acceleration * Time.deltaTime;
@@ -125,11 +130,14 @@ class SchoolController : MonoBehaviour
         }
         var speed = math.clamp(math.length(entities[i].velocity), settings.minSpeed, settings.maxSpeed);
         entities[i].velocity = speed * math.normalize(entities[i].velocity);
-        // entities[i].forward = math.normalize(entities[i].velocity);
         entities[i].acceleration = new();
+        // entities[i].forward = math.normalize(entities[i].velocity);
     }
 
-    // Reset values of the values in the struct that are reset every frame.
+    /// <summary>
+    /// Reset values of the temporary data in the entity which is recalculated every frame.
+    /// </summary>
+    /// <param name="i">Index of the entity to reset.</param>
     void ClearEntityTempData(int i)
     {
         entities[i].detectedNeighbors = 0;
@@ -147,12 +155,17 @@ class SchoolController : MonoBehaviour
             var detectRadius = settings.perceptionRadius;
             var avoidRadius = settings.avoidanceRadius;
 
+            var velocity = entities[i].velocity;
+            var maxSpeed = settings.maxSpeed;
+            var steerForce = settings.maxSteerForce;
+
             // Reset all values.
             ClearEntityTempData(i);
 
             // Complete neighbor-based calculations.
             // FIXME: Currently this is slow, possible optimizations:
-            // Add colliders to transforms and use Physics.OverlapSphere().
+            // 1. Add colliders to transforms and use Physics.OverlapSphere()?
+            // 2. Use jobs or a compute shader?
             for (int j = 0; j < entities.Length; j++)
             {
                 if (i == j)
@@ -168,10 +181,6 @@ class SchoolController : MonoBehaviour
                         entities[i].avoidHeading += (entities[i].position - neighbor.position) / (dist * dist);
                 }
             }
-
-            var maxSpeed = settings.maxSpeed;
-            var steerForce = settings.maxSteerForce;
-            var velocity = entities[i].velocity;
 
             // If the entity has detected neighbors, update the acceleration for it.
             if (entities[i].detectedNeighbors != 0)
@@ -240,6 +249,11 @@ class SchoolController : MonoBehaviour
             }
             ApplyAcceleration(i);
         }
+    }
+
+    void UpdateEntityVelocitiesInParallel()
+    {
+
     }
 
     /// <summary>
