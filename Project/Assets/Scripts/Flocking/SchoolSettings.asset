@@ -22,7 +22,7 @@ MonoBehaviour:
   separateWeight: 2
   targetWeight: 0.5
   enableCollisions: 1
-  avoidCollisionWeight: 50
+  avoidCollisionWeight: 60
   skipCollisionFrames: 1
   collisionFrameSkips: 2
   collisionMask:
@@ -30,6 +30,6 @@ MonoBehaviour:
     m_Bits: 1
   collisionCheckDistance: 4
   collisionCheckRadius: 0
-  useParallelJobs: 1
-  parallelJobsBatchCount: 4
+  enableParallelJobs: 1
+  parallelJobBatchCount: 8
   useMeshInstancing: 1

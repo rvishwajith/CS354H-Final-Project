@@ -21,13 +21,29 @@ class SchoolController : MonoBehaviour
     [SerializeField] Transform prefab = null;
     [SerializeField] float2 spawnRange = new(5, 10);
 
+    /// <summary>
+    /// Array of entities representing a single fish. Stores values for position, velocity, and
+    /// will later also store weight data, etc.
+    /// </summary>
     SchoolBoid[] entities;
-    int frameCount = 0;
 
-    // Use GPU insatncing if enabled in settings.
+    int frameCount = 0; // Remove this later.
+
+    // Use GPU instancing if enabled in settings.
     Mesh instanceMesh;
     Material instanceMaterial;
 
+    // Native arrays for jobs.
+    NativeArray<float3> positions;
+    NativeArray<float3> velocities;
+    NativeArray<float> detectRadii;
+    NativeArray<float> avoidRadii;
+    NativeArray<float> alignWeights;
+    NativeArray<float> cohesionWeights;
+    NativeArray<float> separateWeights;
+    NativeArray<float> steerForces;
+    NativeArray<float> maxSpeeds;
+    NativeArray<float3> accelerations;
 
     /// <summary>
     /// If mesh instancing is enabled and the instances have a mesh filter component, copy the
@@ -51,6 +67,27 @@ class SchoolController : MonoBehaviour
             entities[i].transform.GetComponent<MeshRenderer>().enabled = false;
             // Destroy(entities[i].transform.GetComponent<MeshRenderer>());
         }
+    }
+
+    void AllocateJobData()
+    {
+        var size = entities.Length;
+        var allocator = Allocator.Persistent;
+        positions = new NativeArray<float3>(size, allocator);
+        velocities = new NativeArray<float3>(size, allocator);
+        for (int i = 0; i < size; i++)
+        {
+            positions[i] = entities[i].position;
+            velocities[i] = entities[i].velocity;
+        }
+        detectRadii = SchoolMath.ToNativeArray(settings.perceptionRadius, size, allocator);
+        avoidRadii = SchoolMath.ToNativeArray(settings.avoidanceRadius, size, allocator);
+        alignWeights = SchoolMath.ToNativeArray(settings.alignWeight, size, allocator);
+        cohesionWeights = SchoolMath.ToNativeArray(settings.cohesionWeight, size, allocator);
+        separateWeights = SchoolMath.ToNativeArray(settings.separateWeight, size, allocator);
+        steerForces = SchoolMath.ToNativeArray(settings.maxSteerForce, size, allocator);
+        maxSpeeds = SchoolMath.ToNativeArray(settings.maxSpeed, size, allocator);
+        accelerations = new NativeArray<float3>(size, allocator);
     }
 
     void Start()
@@ -104,6 +141,8 @@ class SchoolController : MonoBehaviour
         // array. Replace with a matrix to avoid GameObject overhead later?
         CreateEntities();
         SetupMeshInstancing();
+        if (settings.enableParallelJobs)
+            AllocateJobData();
     }
 
     void Update()
@@ -271,22 +310,11 @@ class SchoolController : MonoBehaviour
     {
         // Create and populate input/output arrays for job data.
         var size = entities.Length;
-        var allocator = Allocator.Persistent;
-        var positions = new NativeArray<float3>(size, allocator);
-        var velocities = new NativeArray<float3>(size, allocator);
         for (int i = 0; i < size; i++)
         {
             positions[i] = entities[i].position;
             velocities[i] = entities[i].velocity;
         }
-        var detectRadii = SchoolMath.ToNativeArray(settings.perceptionRadius, size, allocator);
-        var avoidRadii = SchoolMath.ToNativeArray(settings.avoidanceRadius, size, allocator);
-        var alignWeights = SchoolMath.ToNativeArray(settings.alignWeight, size, allocator);
-        var cohesionWeights = SchoolMath.ToNativeArray(settings.cohesionWeight, size, allocator);
-        var separateWeights = SchoolMath.ToNativeArray(settings.separateWeight, size, allocator);
-        var steerForces = SchoolMath.ToNativeArray(settings.maxSteerForce, size, allocator);
-        var maxSpeeds = SchoolMath.ToNativeArray(settings.maxSpeed, size, allocator);
-        var accelerations = new NativeArray<float3>(size, allocator);
 
         // Create and run the job with a preset batch count.
         var accelerationsJob = new SchoolComputeAccelerationJob
@@ -306,21 +334,6 @@ class SchoolController : MonoBehaviour
         // FIXME: This can probably be higher (8 seems good).
         var batchCount = settings.parallelJobBatchCount;
         var handle = accelerationsJob.Schedule(size, batchCount);
-
-        // Dispose of data once the job has finished.
-        void DisposeJobData()
-        {
-            positions.Dispose();
-            velocities.Dispose();
-            detectRadii.Dispose();
-            avoidRadii.Dispose();
-            alignWeights.Dispose();
-            cohesionWeights.Dispose();
-            separateWeights.Dispose();
-            steerForces.Dispose();
-            maxSpeeds.Dispose();
-            accelerations.Dispose();
-        }
 
         // Once the job is completed, apply accelerations to each entity then dispos of data.
         handle.Complete();
@@ -347,9 +360,8 @@ class SchoolController : MonoBehaviour
             entities[i].acceleration += ComputeCollisionAvoidance(i);
             ApplyAcceleration(i);
         }
-
         // Debug.Log("Parallel acceleration computations completed, disposing of data.");
-        DisposeJobData();
+        // DisposeJobData();
     }
 
     /// <summary>
@@ -405,6 +417,21 @@ class SchoolController : MonoBehaviour
         }
         // if (frameCount == 5)
         //     Debug.Log("Meshes rendered: " + meshesRendered);
+    }
+
+    void OnDestroy()
+    {
+        Debug.Log("Killing school controller, disposing of allocated jobs data.");
+        positions.Dispose();
+        velocities.Dispose();
+        detectRadii.Dispose();
+        avoidRadii.Dispose();
+        alignWeights.Dispose();
+        cohesionWeights.Dispose();
+        separateWeights.Dispose();
+        steerForces.Dispose();
+        maxSpeeds.Dispose();
+        accelerations.Dispose();
     }
 
     void OnDrawGizmosSelected()
