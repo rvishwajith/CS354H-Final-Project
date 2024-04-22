@@ -36,7 +36,8 @@ public class SchoolSettings : ScriptableObject
     public float collisionCheckRadius = 0.25f;
 
     [Header("Performance")]
-    public bool useParallelJobs = false;
+    public bool enableParallelJobs = true;
+    public int parallelJobBatchCount = 4;
 
     [Header("Rendering")]
     public bool useMeshInstancing = false;

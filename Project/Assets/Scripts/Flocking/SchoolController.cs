@@ -4,6 +4,9 @@
 
 using UnityEngine;
 using Unity.Mathematics;
+using Unity.Collections;
+using Unity.Jobs;
+using Unity.Burst;
 
 /// <summary>
 /// SchoolController:
@@ -24,6 +27,7 @@ class SchoolController : MonoBehaviour
     // Use GPU insatncing if enabled in settings.
     Mesh instanceMesh;
     Material instanceMaterial;
+
 
     /// <summary>
     /// If mesh instancing is enabled and the instances have a mesh filter component, copy the
@@ -108,11 +112,14 @@ class SchoolController : MonoBehaviour
         // teleportation through colliders.
         if (Time.deltaTime < 0.1f)
         {
-            UpdateEntityVelocities();
+            if (settings.enableParallelJobs)
+                UpdateEntityVelocitiesParallel();
+            else
+                UpdateEntityVelocities();
             MoveEntities();
         }
         UpdateTransforms();
-        DrawInstances();
+        RenderInstances();
         frameCount += 1;
     }
 
@@ -120,7 +127,7 @@ class SchoolController : MonoBehaviour
     /// Apply acceleration to an entity's velocity, then reset its acceleration.
     /// TODO: Remove the acceleration field from the struct and change it to a paramter.
     /// </summary>
-    /// <param name="i">The index of the entity to reset.</param>
+    /// <param name="i">Index of the entity to reset.</param>
     void ApplyAcceleration(int i)
     {
         entities[i].velocity += entities[i].acceleration * Time.deltaTime;
@@ -138,13 +145,50 @@ class SchoolController : MonoBehaviour
     /// Reset values of the temporary data in the entity which is recalculated every frame.
     /// </summary>
     /// <param name="i">Index of the entity to reset.</param>
-    void ClearEntityTempData(int i)
+    void ResetEntityTempData(int i)
     {
         entities[i].detectedNeighbors = 0;
         entities[i].neighborHeading = new();
         entities[i].neighborCenter = new();
         entities[i].avoidHeading = new();
         entities[i].acceleration = new();
+    }
+
+    /// <summary>
+    /// Compute a collision avoidance vector for each entity. Assumes that collision is enabled
+    /// for the entity.
+    /// </summary>
+    /// <param name="i">Index of the entity to compute the vector for.</param>
+    /// <returns></returns>
+    float3 ComputeCollisionAvoidance(int i)
+    {
+        var collisionWeight = settings.avoidCollisionWeight;
+        var castDist = settings.collisionCheckDistance;
+        var layers = settings.collisionMask;
+        var steerForce = settings.maxSteerForce;
+        var velocity = entities[i].velocity;
+        var radius = settings.collisionCheckRadius;
+        var pos = entities[i].position;
+        // entities[i].transform.forward = entities[i].velocity;
+        var rot = quaternion.LookRotation(math.normalize(velocity), SchoolMath.WORLD_UP);
+        var dirs = SchoolMath.TURN_DIRS_MED;
+        for (int k = 0; k < dirs.Length; k++)
+        {
+            // var dir = entities[i].transform.TransformDirection(dirs[k]);
+            var dir = math.rotate(rot, dirs[k]);
+            var ray = new Ray(pos, dir);
+            if (radius > 0 && !Physics.SphereCast(ray, radius, castDist, layers))
+            {
+                return collisionWeight * SchoolMath.SteerTowards(
+                    velocity, dir, steerForce, settings.maxSpeed);
+            }
+            else if (radius == 0 && !Physics.Raycast(ray, castDist, layers))
+            {
+                return collisionWeight * SchoolMath.SteerTowards(
+                    velocity, dir, steerForce, settings.maxSpeed);
+            }
+        }
+        return new float3();
     }
 
     void UpdateEntityVelocities()
@@ -160,7 +204,7 @@ class SchoolController : MonoBehaviour
             var steerForce = settings.maxSteerForce;
 
             // Reset all values.
-            ClearEntityTempData(i);
+            ResetEntityTempData(i);
 
             // Complete neighbor-based calculations.
             // FIXME: Currently this is slow, possible optimizations:
@@ -218,42 +262,94 @@ class SchoolController : MonoBehaviour
                 continue;
             else if (settings.skipCollisionFrames && (i + frameCount) % settings.collisionFrameSkips != 0)
                 continue;
-
-            var collisionWeight = settings.avoidCollisionWeight;
-            var castDist = settings.collisionCheckDistance;
-            var layers = settings.collisionMask;
-            var steerForce = settings.maxSteerForce;
-            var velocity = entities[i].velocity;
-            var radius = settings.collisionCheckRadius;
-            var pos = entities[i].position;
-            // entities[i].transform.forward = entities[i].velocity;
-            var rot = quaternion.LookRotation(math.normalize(velocity), SchoolMath.WORLD_UP);
-            var dirs = SchoolMath.TURN_DIRS_MED;
-            for (int k = 0; k < dirs.Length; k++)
-            {
-                // var dir = entities[i].transform.TransformDirection(dirs[k]);
-                var dir = math.rotate(rot, dirs[k]);
-                var ray = new Ray(pos, dir);
-                if (radius > 0 && !Physics.SphereCast(ray, radius, castDist, layers))
-                {
-                    entities[i].acceleration += collisionWeight * SchoolMath.SteerTowards(
-                        velocity, dir, steerForce, settings.maxSpeed);
-                    break;
-                }
-                else if (radius == 0 && !Physics.Raycast(ray, castDist, layers))
-                {
-                    entities[i].acceleration += collisionWeight * SchoolMath.SteerTowards(
-                        velocity, dir, steerForce, settings.maxSpeed);
-                    break;
-                }
-            }
+            entities[i].acceleration += ComputeCollisionAvoidance(i);
             ApplyAcceleration(i);
         }
     }
 
-    void UpdateEntityVelocitiesInParallel()
+    void UpdateEntityVelocitiesParallel()
     {
+        // Create and populate input/output arrays for job data.
+        var size = entities.Length;
+        var allocator = Allocator.Persistent;
+        var positions = new NativeArray<float3>(size, allocator);
+        var velocities = new NativeArray<float3>(size, allocator);
+        for (int i = 0; i < size; i++)
+        {
+            positions[i] = entities[i].position;
+            velocities[i] = entities[i].velocity;
+        }
+        var detectRadii = SchoolMath.ToNativeArray(settings.perceptionRadius, size, allocator);
+        var avoidRadii = SchoolMath.ToNativeArray(settings.avoidanceRadius, size, allocator);
+        var alignWeights = SchoolMath.ToNativeArray(settings.alignWeight, size, allocator);
+        var cohesionWeights = SchoolMath.ToNativeArray(settings.cohesionWeight, size, allocator);
+        var separateWeights = SchoolMath.ToNativeArray(settings.separateWeight, size, allocator);
+        var steerForces = SchoolMath.ToNativeArray(settings.maxSteerForce, size, allocator);
+        var maxSpeeds = SchoolMath.ToNativeArray(settings.maxSpeed, size, allocator);
+        var accelerations = new NativeArray<float3>(size, allocator);
 
+        // Create and run the job with a preset batch count.
+        var accelerationsJob = new SchoolComputeAccelerationJob
+        {
+            positions = positions,
+            velocities = velocities,
+            detectRadii = detectRadii,
+            avoidRadii = avoidRadii,
+            alignWeights = alignWeights,
+            cohesionWeights = cohesionWeights,
+            separateWeights = separateWeights,
+            steerForces = steerForces,
+            maxSpeeds = maxSpeeds,
+            accelerations = accelerations
+        };
+
+        // FIXME: This can probably be higher (8 seems good).
+        var batchCount = settings.parallelJobBatchCount;
+        var handle = accelerationsJob.Schedule(size, batchCount);
+
+        // Dispose of data once the job has finished.
+        void DisposeJobData()
+        {
+            positions.Dispose();
+            velocities.Dispose();
+            detectRadii.Dispose();
+            avoidRadii.Dispose();
+            alignWeights.Dispose();
+            cohesionWeights.Dispose();
+            separateWeights.Dispose();
+            steerForces.Dispose();
+            maxSpeeds.Dispose();
+            accelerations.Dispose();
+        }
+
+        // Once the job is completed, apply accelerations to each entity then dispos of data.
+        handle.Complete();
+        for (var i = 0; i < entities.Length; i++)
+        {
+            var acceleration = accelerations[i];
+            var steerForce = steerForces[i];
+            var maxSpeed = maxSpeeds[i];
+            if (entities[i].target != null)
+            {
+                var targetOffset = new float3(entities[i].target.position) - entities[i].position;
+                var targetForce = settings.targetWeight * SchoolMath.SteerTowards(
+                    velocities[i], targetOffset, steerForce, maxSpeed);
+                acceleration += targetForce;
+            }
+            entities[i].acceleration = acceleration;
+            ApplyAcceleration(i);
+
+            // Check if collisions should be calculated, skip RayCast if unneeded.
+            if (!settings.enableCollisions)
+                continue;
+            else if (settings.skipCollisionFrames && (i + frameCount) % settings.collisionFrameSkips != 0)
+                continue;
+            entities[i].acceleration += ComputeCollisionAvoidance(i);
+            ApplyAcceleration(i);
+        }
+
+        // Debug.Log("Parallel acceleration computations completed, disposing of data.");
+        DisposeJobData();
     }
 
     /// <summary>
@@ -282,25 +378,33 @@ class SchoolController : MonoBehaviour
         }
     }
 
-    void DrawInstances()
+    /// <summary>
+    /// If mesh instancing is enabled, render the entities with the given mesh and material
+    /// properties using Graphics.RenderMeshInstanced.
+    /// </summary>
+    void RenderInstances()
     {
-        if (!settings.useMeshInstancing)
+        if (!settings.useMeshInstancing || instanceMesh == null || instanceMaterial == null)
             return;
-        if (instanceMaterial == null || instanceMesh == null)
-            return;
+
         var renderParams = new RenderParams(instanceMaterial);
         var meshesRendered = 0;
-        var step = SchoolMath.MAX_INSTANCE_COUNT;
+        var step = SchoolMath.MAX_INSTANCE_BATCH_SIZE;
         for (var i = 0; i < entities.Length; i += step)
         {
-            var instanceData = new Matrix4x4[Mathf.Min(i + step, entities.Length) - i];
-            for (var j = i; j < math.min(i + instanceData.Length, entities.Length); j++)
+            var numInstances = math.min(i + step, entities.Length) - i;
+            // if (frameCount == 5)
+            //     Debug.Log("Meshes to render: " + numInstances);
+            var instanceMatrices = new Matrix4x4[numInstances];
+            for (var j = 0; j < numInstances; j++)
             {
-                instanceData[j] = entities[i + j].transform.localToWorldMatrix;
+                instanceMatrices[j] = entities[i + j].transform.localToWorldMatrix;
                 meshesRendered += 1;
             }
-            Graphics.RenderMeshInstanced(renderParams, instanceMesh, 0, instanceData);
+            Graphics.RenderMeshInstanced(renderParams, instanceMesh, 0, instanceMatrices);
         }
+        // if (frameCount == 5)
+        //     Debug.Log("Meshes rendered: " + meshesRendered);
     }
 
     void OnDrawGizmosSelected()

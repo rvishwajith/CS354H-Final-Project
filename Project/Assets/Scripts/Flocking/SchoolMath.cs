@@ -2,6 +2,7 @@
 /// Author: Rohith Vishwajith
 /// Created 4/21/2024
 
+using System;
 using UnityEngine;
 using Unity.Mathematics;
 using Unity.Collections;
@@ -19,7 +20,7 @@ public static class SchoolMath
     /// <summary>
     /// The maximum instance count for drawing instanced meshes using DrawMeshIndirect.
     /// </summary>
-    public static readonly int MAX_INSTANCE_COUNT = 1023;
+    public static readonly int MAX_INSTANCE_BATCH_SIZE = 1023;
 
     /// <summary>
     /// The equivalent to Vector3.up but as a float3.
@@ -97,11 +98,59 @@ public static class SchoolMath
         return math.normalize(dir) * math.clamp(math.length(dir), 0, steerForce);
     }
 
-    public static NativeArray<float> ToNativeArray(float f, int size, Allocator allocator)
+    public static NativeArray<float> ToNativeArray(float value, int size, Allocator allocator)
     {
         var arr = new float[size];
-        for (int i = 0; i < size; i++)
-            arr[i] = f;
+        // for (int i = 0; i < size; ++i)
+        //     arr[i] = value;
+        arr.Populate<float>(0, size, value);
         return new NativeArray<float>(arr, allocator);
+    }
+
+    /// <summary>
+    /// Helper method to quickly populate a large array with the same value.
+    /// 
+    /// </summary>
+    /// <typeparam name="T">The type of the array.</typeparam>
+    /// <param name="array">The input array.</param>
+    /// <param name="startIndex"></param>
+    /// <param name="count"></param>
+    /// <param name="value"></param>
+    public static void Populate<T>(this T[] array, int startIndex, int count, T value)
+    {
+        const int gap = 16;
+        int i = startIndex;
+        if (count <= gap * 2)
+        {
+            while (count > 0)
+            {
+                array[i] = value;
+                count--;
+                i++;
+            }
+            return;
+        }
+        int aval = gap;
+        count -= gap;
+        do
+        {
+            array[i] = value;
+            i++;
+            --aval;
+        } while (aval > 0);
+
+        aval = gap;
+        while (true)
+        {
+            Array.Copy(array, startIndex, array, i, aval);
+            i += aval;
+            count -= aval;
+            aval *= 2;
+            if (count <= aval)
+            {
+                Array.Copy(array, startIndex, array, i, count);
+                break;
+            }
+        }
     }
 }

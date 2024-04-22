@@ -1,0 +1,91 @@
+// SchoolComputeAcceleration.cs
+// Author: Rohith Vishwajith
+// Created 4/21/2024
+
+using Unity.Mathematics;
+using Unity.Jobs;
+using Unity.Collections;
+
+/// <summary>
+/// A modified version of the acceleration computation for SchoolController using multithreading 
+/// via Unity's jobs system (TODO).
+/// </summary>
+public struct SchoolComputeAccelerationJob : IJobParallelFor
+{
+    // Required inputs (readonly):
+    // - movement: position, velocity
+    // - distances: detectRadius, avoidRadius
+    // - weights: alignWeight, cohesionWeight, separateWeight
+    // - speeds: speed
+    [ReadOnly] public NativeArray<float3> positions;
+    [ReadOnly] public NativeArray<float3> velocities;
+
+    [ReadOnly] public NativeArray<float> detectRadii;
+    [ReadOnly] public NativeArray<float> avoidRadii;
+
+    [ReadOnly] public NativeArray<float> alignWeights;
+    [ReadOnly] public NativeArray<float> cohesionWeights;
+    [ReadOnly] public NativeArray<float> separateWeights;
+
+    [ReadOnly] public NativeArray<float> steerForces;
+    [ReadOnly] public NativeArray<float> maxSpeeds;
+
+    // Job outputs:
+    // - accelerations (from neighbors only)
+    public NativeArray<float3> accelerations;
+
+    public void Execute(int i)
+    {
+        // Cache input data (just to make code more readable).
+        var pos = positions[i];
+        var velocity = velocities[i];
+
+        var detectRadius = detectRadii[i];
+        var avoidRadius = avoidRadii[i];
+
+        var alignWeight = alignWeights[i];
+        var cohesionWeight = cohesionWeights[i];
+        var separateWeight = separateWeights[i];
+
+        var steerForce = steerForces[i];
+        var maxSpeed = maxSpeeds[i];
+
+        // Store data needed for computing acceleration.
+        int detectedNeighbors = 0;
+        var neighborHeading = new float3();
+        var neighborCenter = new float3();
+        var avoidHeading = new float3();
+        var acceleration = new float3();
+
+        for (int j = 0; j < positions.Length; j++)
+        {
+            if (i == j)
+                continue;
+            var neighborPos = positions[j];
+            var dist = math.distance(pos, neighborPos);
+            if (dist > 0 && dist <= detectRadius)
+            {
+                detectedNeighbors += 1;
+                neighborHeading += math.normalize(velocities[j]);
+                if (dist <= avoidRadius)
+                    avoidHeading += (pos - neighborPos) / (dist * dist);
+            }
+        }
+
+        // Neighbors were detected, compute standards boids forces.
+        if (detectedNeighbors != 0)
+        {
+            neighborCenter /= detectedNeighbors;
+            var align = alignWeight * SchoolMath.SteerTowards(
+                velocity, neighborHeading, steerForce, maxSpeed);
+            var toCenter = cohesionWeight * SchoolMath.SteerTowards(
+                velocity, neighborCenter - pos, steerForce, maxSpeed);
+            var separate = separateWeight * SchoolMath.SteerTowards(
+                velocity, avoidHeading, steerForce, maxSpeed);
+            acceleration += align + toCenter + separate;
+        }
+
+        // Store result in Jobs results array.
+        accelerations[i] = acceleration;
+    }
+}
