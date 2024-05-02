@@ -73,3 +73,28 @@
 # Temporary auto-generated Android Assets
 /Project/[Aa]ssets/[Ss]treamingAssets/aa.meta
 /Project/[Aa]ssets/[Ss]treamingAssets/aa/*
+Builds/macOS-Build.app/Contents/Resources/MainMenu.nib/keyedobjects.nib
+Builds/macOS-Build.app/Contents/Resources/MainMenu.nib/designable.nib
+Builds/macOS-Build.app/Contents/Resources/DefaultPreferences.plist
+Builds/macOS-Build.app/Contents/Resources/Data/sharedassets0.assets.resS
+Builds/macOS-Build.app/Contents/Resources/Data/sharedassets0.assets
+Builds/macOS-Build.app/Contents/Resources/Data/ScriptingAssemblies.json
+Builds/macOS-Build.app/Contents/Resources/Data/RuntimeInitializeOnLoads.json
+Builds/macOS-Build.app/Contents/Resources/Data/Resources/unity_builtin_extra
+Builds/macOS-Build.app/Contents/Resources/Data/Resources/unity default resources
+Builds/macOS-Build.app/Contents/Resources/Data/resources.assets.resS
+Builds/macOS-Build.app/Contents/Resources/Data/resources.assets
+Builds/macOS-Build.app/Contents/Resources/Data/level0
+Builds/macOS-Build.app/Contents/Resources/Data/il2cpp_data/Resources/mscorlib.dll-resources.dat
+Builds/macOS-Build.app/Contents/Resources/Data/il2cpp_data/Metadata/global-metadata.dat
+Builds/macOS-Build.app/Contents/Resources/Data/globalgamemanagers.assets.resS
+Builds/macOS-Build.app/Contents/Resources/Data/globalgamemanagers.assets
+Builds/macOS-Build.app/Contents/Resources/Data/globalgamemanagers
+Builds/macOS-Build.app/Contents/Resources/Data/boot.config
+Builds/macOS-Build.app/Contents/Resources/Data/app.info
+Builds/macOS-Build.app/Contents/PlugIns/lib_burst_generated.bundle
+Builds/macOS-Build.app/Contents/MacOS/Project
+Builds/macOS-Build.app/Contents/Info.plist
+Builds/macOS-Build.app/Contents/Frameworks/UnityPlayer.dylib
+Builds/macOS-Build.app/Contents/Frameworks/GameAssembly.dylib
+Builds/macOS-Build.app/Contents/_CodeSignature/CodeResources
