@@ -21,6 +21,8 @@ class SchoolController : MonoBehaviour
     [SerializeField] Transform prefab = null;
     [SerializeField] float2 spawnRange = new(5, 10);
 
+    public RaycastHit[] hitBuffer = new RaycastHit[1];
+
     /// <summary>
     /// Array of entities representing a single fish. Stores values for position, velocity, and
     /// will later also store weight data, etc.
@@ -216,18 +218,18 @@ class SchoolController : MonoBehaviour
             // var dir = entities[i].transform.TransformDirection(dirs[k]);
             var dir = math.rotate(rot, dirs[k]);
             var ray = new Ray(pos, dir);
-            if (radius > 0 && !Physics.SphereCast(ray, radius, castDist, layers))
+            if (radius > 0 && Physics.SphereCastNonAlloc(ray, radius, hitBuffer, castDist, layers) != 0)
             {
                 return collisionWeight * SchoolMath.SteerTowards(
                     velocity, dir, steerForce, settings.maxSpeed);
             }
-            else if (radius == 0 && !Physics.Raycast(ray, castDist, layers))
+            else if (radius == 0 && Physics.RaycastNonAlloc(ray, hitBuffer, castDist, layers) != 0)
             {
                 return collisionWeight * SchoolMath.SteerTowards(
                     velocity, dir, steerForce, settings.maxSpeed);
             }
         }
-        return new float3();
+        return new();
     }
 
     void UpdateEntityVelocities()

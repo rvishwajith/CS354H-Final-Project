@@ -1,0 +1,90 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: TrevallyMaterial
+  m_Shader: {fileID: -6465566751694194690, guid: cd043c640ef01409497134eae6966daf,
+    type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 2
+  m_EnableInstancingVariants: 1
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses:
+  - MOTIONVECTORS
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _Albedo:
+        m_Texture: {fileID: 2800000, guid: 08335d3d64bc44f498d917f2b914f166, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_03b5efcd8c624ce797b0ec726ce1d53e_Texture_1_Texture2D:
+        m_Texture: {fileID: 2800000, guid: 08335d3d64bc44f498d917f2b914f166, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_15f8f386192f44d685c196a2ebdecda5_Texture_1_Texture2D:
+        m_Texture: {fileID: 2800000, guid: 08335d3d64bc44f498d917f2b914f166, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_Lightmaps:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_LightmapsInd:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_ShadowMasks:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _AccelerationTurnX: 0
+    - _AccelerationTurnY: 0
+    - _AnimationSpeed: 5
+    - _Emission: 0
+    - _EmissionStep: 0
+    - _FishLength: 2
+    - _Float: 0
+    - _LengthInfluence: 3
+    - _QueueControl: 0
+    - _QueueOffset: 0
+    - _RotationScale: 20
+    - _TimeInfluence: 6.4
+    - _YRotationLengthInfluence: 3
+    - _YRotationScale: 20
+    - _YRotationTimeInfluence: 2
+    - _ZRotationLengthInfluence: 5
+    - _ZRotationScale: 10
+    m_Colors:
+    - _Local_Z_Bounds: {r: 0, g: -2, b: 0, a: 0}
+    - _Shininess: {r: 0, g: 0, b: 0, a: 0}
+    - _Specular: {r: 0.25, g: 0.25, b: 0, a: 0}
+    - _Z_Extents: {r: 0, g: -2, b: 0, a: 0}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
+--- !u!114 &7896513660423081453
+MonoBehaviour:
+  m_ObjectHideFlags: 11
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  version: 9

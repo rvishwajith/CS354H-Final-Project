@@ -45,7 +45,7 @@ public class WavesCascadeComputeHandler
     readonly RenderTexture DxDzTexture, DyDxzTexture, DyxDyzTexture, DxxDzzTexture;
 
     // Displacement, derivative, and turbulence textures.
-    readonly RenderTexture displacementTexture;
+    readonly CustomRenderTexture displacementTexture;
     readonly RenderTexture derivativesTexture;
     readonly RenderTexture turbulenceTexture;
 
@@ -105,7 +105,8 @@ public class WavesCascadeComputeHandler
         // Set up input and spectrum textures,
         initialSpectrum = OceanTextureGenerator.CreateRenderTexture(resolution, RenderTextureFormat.ARGBFloat);
         precomputedDataTexture = OceanTextureGenerator.CreateRenderTexture(resolution, RenderTextureFormat.ARGBFloat);
-        displacementTexture = OceanTextureGenerator.CreateRenderTexture(resolution, RenderTextureFormat.ARGBFloat);
+        displacementTexture = OceanTextureGenerator.CreateCustomRenderTexture(resolution, RenderTextureFormat.ARGBFloat, true);
+
         derivativesTexture = OceanTextureGenerator.CreateRenderTexture(resolution, RenderTextureFormat.ARGBFloat, true);
         turbulenceTexture = OceanTextureGenerator.CreateRenderTexture(resolution, RenderTextureFormat.ARGBFloat, true);
 
@@ -118,6 +119,11 @@ public class WavesCascadeComputeHandler
         DyDxzTexture = OceanTextureGenerator.CreateRenderTexture(resolution);
         DyxDyzTexture = OceanTextureGenerator.CreateRenderTexture(resolution);
         DxxDzzTexture = OceanTextureGenerator.CreateRenderTexture(resolution);
+    }
+
+    public void SetDisplacementMaterial(Material material)
+    {
+        displacementTexture.material = material;
     }
 
     public void DisposeBufferData()

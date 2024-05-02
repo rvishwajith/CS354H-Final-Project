@@ -38,6 +38,22 @@ public static class OceanTextureGenerator
         return renderTexture;
     }
 
+    public static CustomRenderTexture CreateCustomRenderTexture(int resolution = 256, RenderTextureFormat format = RenderTextureFormat.RGFloat, bool useMipMap = false)
+    {
+        var renderTexture = new CustomRenderTexture(resolution, resolution, format, RenderTextureReadWrite.Linear)
+        {
+            useMipMap = useMipMap,
+            autoGenerateMips = false,
+            anisoLevel = 6,
+            filterMode = FilterMode.Trilinear,
+            wrapMode = TextureWrapMode.Repeat,
+            enableRandomWrite = true,
+        };
+        if (!renderTexture.Create())
+            Debug.Log("OceanTextureGenerator: Failed to create render texture.");
+        return renderTexture;
+    }
+
     /// <summary>
     /// Create a new SIZE x SIZE Texture2D with noise values. If enabled, the texture will also be
     /// saved as a Texture2D asset.
@@ -63,13 +79,13 @@ public static class OceanTextureGenerator
         noiseTexture.Apply();
 
         // If enabled, store the noise texture as an asset so we don't need to generate it again.
-        if (saveAsAsset && Application.isEditor)
-        {
-            var filePrefix = "Assets/Resources/GaussianNoise/";
-            var fileName = filePrefix + resolution + "x" + resolution;
-            AssetDatabase.CreateAsset(noiseTexture, fileName + ".asset");
-            Debug.Log("Added noise texture at: " + fileName);
-        }
+        // if (saveAsAsset && Application.isEditor)
+        // {
+        //     var filePrefix = "Assets/Resources/GaussianNoise/";
+        //     var fileName = filePrefix + resolution + "x" + resolution;
+        //     AssetDatabase.CreateAsset(noiseTexture, fileName + ".asset");
+        //     Debug.Log("Added noise texture at: " + fileName);
+        // }
         return noiseTexture;
     }
 

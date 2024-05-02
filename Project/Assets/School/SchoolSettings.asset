@@ -13,23 +13,23 @@ MonoBehaviour:
   m_Name: SchoolSettings
   m_EditorClassIdentifier: 
   minSpeed: 4
-  maxSpeed: 9.5
-  maxSteerForce: 10
+  maxSpeed: 6
+  maxSteerForce: 8
   perceptionRadius: 4
-  avoidanceRadius: 2
+  avoidanceRadius: 2.5
   alignWeight: 1.5
   cohesionWeight: 1
-  separateWeight: 2.5
+  separateWeight: 2
   targetWeight: 1
   enableCollisions: 1
-  avoidCollisionWeight: 20
+  avoidCollisionWeight: 10
   skipCollisionFrames: 0
-  collisionFrameSkips: 1
+  collisionFrameSkips: 2
   collisionMask:
     serializedVersion: 2
     m_Bits: 1
-  collisionCheckDistance: 4
-  collisionCheckRadius: 0.25
+  collisionCheckDistance: 8
+  collisionCheckRadius: 0
   enableParallelJobs: 1
-  parallelJobBatchCount: 4
+  parallelJobBatchCount: 8
   useMeshInstancing: 1

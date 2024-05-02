@@ -12,8 +12,8 @@ public class WavesSettingsAsset : ScriptableObject
     public float depth = 500;
 
     [Range(0, 1)] public float lambda;
-    public SpectrumSettingsMenuAsset local;
-    public SpectrumSettingsMenuAsset swell;
+    [SerializeField] SpectrumSettingsMenuAsset local;
+    [SerializeField] SpectrumSettingsMenuAsset swell;
 
     SpectrumSettings[] spectrums = new SpectrumSettings[2];
 
@@ -56,17 +56,17 @@ public class WavesSettingsAsset : ScriptableObject
     }
 }
 
-[Serializable]
-public class SpectrumSettingsMenuAsset
+[System.Serializable]
+struct SpectrumSettingsMenuAsset
 {
-    [Range(0, 1)] public float scale = 1f;
-    public float windSpeed = 0.5f;
-    public float windDirection = 30f;
-    public float fetch = 100000f;
-    [Range(0, 1)] public float spreadBlend = 1f;
-    [Range(0, 1)] public float swell = 1f;
-    public float peakEnhancement = 2.2f;
-    public float shortWavesFade = 0.01f;
+    [Range(0, 1)] public float scale;// = 1f;
+    public float windSpeed;// = 0.5f;
+    public float windDirection;// = 30f;
+    public float fetch;// = 100000f;
+    [Range(0, 1)] public float spreadBlend;// = 1f;
+    [Range(0, 1)] public float swell;// = 1f;
+    public float peakEnhancement;// = 2.2f;
+    public float shortWavesFade;// = 0.01f;
 }
 
 public struct SpectrumSettings

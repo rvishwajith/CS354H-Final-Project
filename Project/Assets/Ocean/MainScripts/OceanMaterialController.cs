@@ -33,11 +33,14 @@ public class OceanMaterialController : MonoBehaviour
         for (var i = 0; i < oceanSurfaceController.cascades.Length; i++)
         {
             var cascade = oceanSurfaceController.cascades[i];
+            cascade.SetDisplacementMaterial(sharedOceanSurfaceMaterial);
             var suffix = "_c" + i;
+            //Shader.SetGlobalTexture("_Displacement" + suffix, cascade.Displacement);
             sharedOceanSurfaceMaterial.SetTexture("_Displacement" + suffix, cascade.Displacement);
             sharedOceanSurfaceMaterial.SetTexture("_Derivatives" + suffix, cascade.Derivatives);
             sharedOceanSurfaceMaterial.SetTexture("_Turbulence" + suffix, cascade.Turbulence);
             // Debug.Log("Cascade " + i + ": Set displacement/derivative/turbulence textures.");
+            Debug.Log("Set cascade textures.");
         }
     }
 
