@@ -9,27 +9,27 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fce0b5aca60854176ae6a9cfd533190d, type: 3}
+  m_Script: {fileID: 11500000, guid: 0c690dac3351c47349300392dbc0255f, type: 3}
   m_Name: SchoolSettings
   m_EditorClassIdentifier: 
-  minSpeed: 4.5
-  maxSpeed: 7.5
+  minSpeed: 4
+  maxSpeed: 9.5
   maxSteerForce: 10
-  perceptionRadius: 2.5
-  avoidanceRadius: 1.75
+  perceptionRadius: 4
+  avoidanceRadius: 2
   alignWeight: 1.5
   cohesionWeight: 1
-  separateWeight: 2
-  targetWeight: 0.5
+  separateWeight: 2.5
+  targetWeight: 1
   enableCollisions: 1
-  avoidCollisionWeight: 60
-  skipCollisionFrames: 1
-  collisionFrameSkips: 2
+  avoidCollisionWeight: 20
+  skipCollisionFrames: 0
+  collisionFrameSkips: 1
   collisionMask:
     serializedVersion: 2
     m_Bits: 1
   collisionCheckDistance: 4
-  collisionCheckRadius: 0
+  collisionCheckRadius: 0.25
   enableParallelJobs: 1
-  parallelJobBatchCount: 8
+  parallelJobBatchCount: 4
   useMeshInstancing: 1
