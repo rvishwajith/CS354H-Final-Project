@@ -105,7 +105,7 @@ public class WavesCascadeComputeHandler
         // Set up input and spectrum textures,
         initialSpectrum = OceanTextureGenerator.CreateRenderTexture(resolution, RenderTextureFormat.ARGBFloat);
         precomputedDataTexture = OceanTextureGenerator.CreateRenderTexture(resolution, RenderTextureFormat.ARGBFloat);
-        displacementTexture = OceanTextureGenerator.CreateCustomRenderTexture(resolution, RenderTextureFormat.ARGBFloat, true);
+        displacementTexture = OceanTextureGenerator.CreateCustomRenderTexture(resolution, RenderTextureFormat.ARGBFloat);
 
         derivativesTexture = OceanTextureGenerator.CreateRenderTexture(resolution, RenderTextureFormat.ARGBFloat, true);
         turbulenceTexture = OceanTextureGenerator.CreateRenderTexture(resolution, RenderTextureFormat.ARGBFloat, true);

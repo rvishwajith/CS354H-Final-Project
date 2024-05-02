@@ -53,7 +53,7 @@ Material:
     - _QueueControl: 0
     - _QueueOffset: 0
     - _XRotationLengthInfluence: 2
-    - _XRotationScale: 10
+    - _XRotationScale: 8.5
     - _XRotationTimeInfluence: 2.5
     - _XYotationLengthInfluence: 5
     - _YRotationLengthInfluence: 5

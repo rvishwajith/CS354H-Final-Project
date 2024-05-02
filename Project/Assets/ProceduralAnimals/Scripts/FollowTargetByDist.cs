@@ -66,12 +66,12 @@ public class FollowTargetByDist : MonoBehaviour
         // Get the rotation relative to the target.
         // Source: https://discussions.unity.com/t/how-to-assign-a-rotation-relative-to-another-
         // object/221770/2
-        void CalculateRelativeRotation()
-        {
-            if (!keepRelativeRotation)
-                return;
-            relativeRotation = Quaternion.Inverse(target.transform.rotation) * transform.rotation;
-        }
+        // void CalculateRelativeRotation()
+        // {
+        //     if (!keepRelativeRotation)
+        //         return;
+        //     relativeRotation = Quaternion.Inverse(target.transform.rotation) * transform.rotation;
+        // }
 
         void UnparentObject()
         {
